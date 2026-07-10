@@ -1,14 +1,17 @@
 const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+const path = require("path"); // manages reading and writing part
+const crypto = require("crypto"); // create secure digital fingerprints
 const { Groq } = require("groq-sdk");
-const { getOpsSnapshot } = require("./db/queries");
+const { getOpsSnapshot } = require("./db/queries"); // brings our db report
+const express = require("express");
+const cors = require("cors");
 require("dotenv").config();
 
 const CACHE_FILE_PATH = path.join(__dirname, "cache.json");
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// thse two functions are short term memory, the system saves the AI's last answer so we dont call the api again
 function readPersistentCache() {
   if (!fs.existsSync(CACHE_FILE_PATH)) return {};
   try {
@@ -26,6 +29,9 @@ function writePersistentCache(cacheData) {
   }
 }
 
+// our mmain function, this takes the exact db snapshot and if database hasn't changed since the last time
+// the fingerprint will be identical. If even a single work order is updated, the fingerprint changes completely, 
+// signaling the app that it needs a fresh AI summary.
 function generateHash(snapshot) {
   if (!snapshot || !snapshot.act_metrics) {
     return crypto.createHash("sha256").update(JSON.stringify(snapshot)).digest("hex");
@@ -44,6 +50,9 @@ function generateHash(snapshot) {
   return crypto.createHash("sha256").update(sortedMetricString).digest("hex");
 }
 
+
+// our halucinating guradrail, it has all the real Work Order and Equipment IDs directly from the database snapshot
+// so if the ai mentions some other ID this function throws it into trash
 function runCitationGuard(brief, snapshot) {
   if (!snapshot || !snapshot.act_metrics) return brief;
 
@@ -87,13 +96,13 @@ function runCitationGuard(brief, snapshot) {
 }
 
 async function generateMorningBrief() {
-  const snapshot = getOpsSnapshot();
+  const snapshot = getOpsSnapshot(); // it gets the latest snapshot and creates a fingerprint
 
   const snapshotHash = generateHash(snapshot);
 
   const persistentCache = readPersistentCache();
 
-  if (persistentCache[snapshotHash]) {
+  if (persistentCache[snapshotHash]) { // chcks if already cached
     console.log(
       "[CACHE PASS] Stable data fingerprint matched from disk cache. Returning cached brief instantly."
     );
@@ -177,9 +186,6 @@ CRITICAL INSTRUCTIONS:
     };
   }
 }
-
-const express = require("express");
-const cors = require("cors");
 
 const app = express();
 const PORT = 3001;
