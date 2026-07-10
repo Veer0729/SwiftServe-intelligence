@@ -68,7 +68,12 @@ function getOpsSnapshot() {
     `).all();
 
     const urgentWorkOrders = db.prepare(`
-        SELECT id, customer_name, priority, status, due_date 
+        SELECT id, customer_name, location, priority, status, due_date,
+               CASE
+                 WHEN julianday('now') - julianday(due_date) > 0 THEN 'BREACHED'
+                 WHEN priority = 'Critical' THEN 'CRITICAL'
+                 ELSE 'AT RISK'
+               END as sla_status
         FROM work_orders 
         WHERE priority IN ('High', 'Critical') AND status != 'Completed'
     `).all();
