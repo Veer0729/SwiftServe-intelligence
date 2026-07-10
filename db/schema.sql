@@ -1,24 +1,23 @@
--- customers: not a provided file — derived from customer_id/customer_name
--- appearing across equipment.csv and sla_metrics.csv
+
 CREATE TABLE customers (
-  id TEXT PRIMARY KEY,              -- CUST001, etc.
+  id TEXT PRIMARY KEY,              
   name TEXT NOT NULL
 );
 
 CREATE TABLE technicians (
-  id TEXT PRIMARY KEY,              -- TECH001
+  id TEXT PRIMARY KEY,              
   name TEXT NOT NULL,
   location TEXT,
   status TEXT CHECK (status IN ('Active','Inactive')),
-  skills TEXT,                      -- comma-separated, kept as raw text
+  skills TEXT,               
   total_assignments INTEGER,
   completed_assignments INTEGER,
   avg_response_time_hours REAL
 );
 
 CREATE TABLE work_orders (
-  id TEXT PRIMARY KEY,              -- WO001
-  customer_name TEXT NOT NULL,      -- no customer_id here in source — text join only
+  id TEXT PRIMARY KEY,              
+  customer_name TEXT NOT NULL,      
   location TEXT,
   issue_type TEXT,
   priority TEXT CHECK (priority IN ('Low','Medium','High','Critical')),
@@ -32,7 +31,7 @@ CREATE TABLE work_orders (
 );
 
 CREATE TABLE equipment (
-  id TEXT PRIMARY KEY,              -- EQ001
+  id TEXT PRIMARY KEY,              
   customer_id TEXT REFERENCES customers(id),
   equipment_name TEXT,
   equipment_type TEXT,
@@ -46,7 +45,7 @@ CREATE TABLE equipment (
 );
 
 CREATE TABLE sla_metrics (
-  id TEXT PRIMARY KEY,              -- SLA001
+  id TEXT PRIMARY KEY,           
   customer_id TEXT REFERENCES customers(id),
   customer_name TEXT,
   sla_tier TEXT CHECK (sla_tier IN ('Basic','Standard','Premium','Enterprise')),
@@ -61,7 +60,7 @@ CREATE TABLE sla_metrics (
 );
 
 CREATE TABLE dispatch_logs (
-  id TEXT PRIMARY KEY,              -- DISP001
+  id TEXT PRIMARY KEY,              
   work_order_id TEXT REFERENCES work_orders(id),
   technician_id TEXT REFERENCES technicians(id),
   dispatch_time TEXT,
