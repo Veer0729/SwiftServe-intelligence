@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+ 
+# Environment secrets — never commit your real Groq API key
+.env
+ 
+# Local generated data — regenerate via db/seed.js, don't ship the actual DB
+project.db
+ 
+# Local AI-response cache — regenerates automatically, not part of the source
+cache.json
+ 
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+ 
